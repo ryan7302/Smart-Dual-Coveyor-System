@@ -207,7 +207,7 @@ No other functional changes were made. The behaviour of the system remains ident
 
 ## 📜 License
 
-This project is released under the **MIT License**. See `LICENSE` file for details.
+This educational project.
 
 ---
 
