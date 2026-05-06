@@ -134,12 +134,13 @@ flowchart LR
 ### Smart Conveyor System – Data Flow
 
 ```mermaid
+%%{init: {'theme': 'dark'}}%%
 graph TB
-    %% Styles
-    classDef green fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-    classDef blue fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
-    classDef orange fill:#fff3e0,stroke:#bf360c,stroke-width:2px
-    classDef gray fill:#f5f5f5,stroke:#666,stroke-width:2px
+    %% Dark theme class definitions
+    classDef green fill:#1b5e20,stroke:#4caf50,stroke-width:2px,color:#fff
+    classDef blue fill:#0d47a1,stroke:#42a5f5,stroke-width:2px,color:#fff
+    classDef orange fill:#bf360c,stroke:#ff7043,stroke-width:2px,color:#fff
+    classDef gray fill:#424242,stroke:#9e9e9e,stroke-width:2px,color:#fff
 
     %% Data Collection Points
     subgraph DC["Data Collection Points"]
