@@ -131,72 +131,67 @@ flowchart LR
 ```
 *Smart Conveyor System – Dual-Stage Smart Conveyor Control System – Architecture overview showing tasks, ISR, inter‑task communication resources, and the serial monitor.*
 
-### Smart Conveyor System – Mutex & Queue Architecture
-
+### Smart Conveyor System – Data Flow
 ```mermaid
-graph LR
-    %% Inter-Core Communication
-    subgraph COMM["⚡ Inter-Core Communication"]
-        Q["📦 conv1ToConv2Queue<br/><i>FreeRTOS Queue</i>"]
+graph TB
+    %% Styles
+    classDef green fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    classDef blue fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    classDef orange fill:#fff3e0,stroke:#bf360c,stroke-width:2px
+    classDef gray fill:#f5f5f5,stroke:#666,stroke-width:2px
+    classDef whiteBox fill:#fff,stroke:#333,stroke-width:1px
+
+    %% Data Collection Points
+    subgraph DC["Data Collection Points"]
+      sensors["<b>Sensor Triggers</b><br/>• Obstruction Sensor (Length)<br/>• Barcode Sensor (Product ID)<br/>• Weight Sensor (Weight)"]
     end
 
-    %% Core 0
-    subgraph CORE0["🔵 Core 0"]
-        direction TB
-        subgraph T1["conveyor1ControlTask"]
-            D1["📋 productsOnConv1[]"]
-        end
-        subgraph T2["statusReportingTask"]
-            D2["📊 productsForReport[]"]
-        end
-        subgraph T3["userCommandTask"]
-            D3["📈 Statistical Variables"]
-        end
-        M1["🔒 conv1Mutex"]
-        M2["🔒 reportMutex"]
-        M3["🔒 statsMutex"]
+    %% TrackedProduct
+    subgraph TP["TrackedProduct"]
+      product["<b>Product Data Fields</b><br/>"
+              "ID: barcodeID, tempID<br/>"
+              "Measurements: length, weight<br/>"
+              "Status: NONE → PROCESSED<br/>"
+              "Quality Flags: isLengthOK, isWeightOK<br/>"
+              "Timing: entryTimeConv1, entryTimeConv2<br/>"
+              "Gate Control: gate1DecisionMade, gate2DecisionMade<br/>"
+              "Reporting: forRealTimeReport"]
     end
 
-    %% Core 1
-    subgraph CORE1["🔴 Core 1"]
-        direction TB
-        subgraph T4["conveyor2ControlTask"]
-            D4["📋 productsOnConv2[]"]
-            D5["⚖ Weight Processing"]
-            D6["🚦 Gate 2 Logic"]
-            D7["⚠ Collision Detection"]
-        end
-        M4["🔒 conv2Mutex"]
+    %% Real-Time Reporting
+    subgraph RT["Real-Time Reporting (1-sec interval)"]
+      direction LR
+      rt_flow["<b>Data Collection Flow</b><br/>1. Status changes<br/>2. addProductToReport()<br/>3. Product added to productsForReport[]<br/>4. formatReportString() builds statusBuffer"]
+      rt_output["<b>Real-Time Output Format</b><br/>• Product IDs<br/>• Length measurements (cm)<br/>• Weight measurements (g)<br/>• Accept/Reject counters"]
+      rt_flow --> rt_output
     end
 
-    %% Global serial mutex
-    SM["🔒 serialMutex<br/><i>Serial access</i>"]
+    %% Statistical Reporting
+    subgraph STAT["Statistical Reporting (on-demand via 'stat' command)"]
+      direction LR
+      stat_accum["<b>Statistical Accumulators</b><br/><b>Length Statistics</b><br/><b>Weight Statistics</b>"]
+      stat_output["<b>Statistical Output Format</b><br/>• Average Total Length<br/>• Average Acceptable Length<br/>• Average Defective Length<br/>• Average Total Weight<br/>• Average Acceptable Weight<br/>• Average Defective Weight"]
+      stat_accum --> stat_output
+    end
 
-    %% Data Flow (solid)
-    T1 -->|"xQueueSend"| Q
-    Q  -->|"xQueueReceive"| T4
+    %% Sample Outputs
+    subgraph SAMPLES["Sample Output Examples"]
+      rt_sample["<b>Real-time</b><br/>convRT:019,011,1001,5.0,100.0,1002,4.9,98.0,1003,5.1,102.0<br/><i>(19 accepted, 11 rejected, product details)</i>"]
+      stat_sample["<b>Statistical</b><br/>convSTAT:4.98,5.01,4.83,99.8,100.2,98.6<br/><i>(Average lengths and weights)</i>"]
+    end
 
-    %% Mutex Lock / Unlock (dashed)
-    D1 -.->|"Take"| M1
-    M1 -.->|"Give"| D1
-    D2 -.->|"Take"| M2
-    M2 -.->|"Give"| D2
-    D3 -.->|"Take"| M3
-    M3 -.->|"Give"| D3
-    D4 -.->|"Take"| M4
-    M4 -.->|"Give"| D4
+    %% Connections
+    DC -->|<b>Product data captured</b>| TP
+    TP -->|<b>Update Real-Time Report<br/>when status changes</b>| RT
+    TP -->|<b>Update Statistical Accumulators<br/>when measurements taken</b>| STAT
+    rt_output --> rt_sample
+    stat_output --> stat_sample
 
-    %% Reporting / Stats (dashed)
-    T1 -.->|"addProductToReport()"| D2
-    D5 -.->|"addProductToReport()"| D2
-    D6 -.->|"addProductToReport()"| D2
-
-    T1 -.->|"Update statistics"| D3
-    D6 -.->|"Update statistics"| D3
-
-    %% Serial mutex usage
-    D2 -.->|"Take(serialMutex)"| SM
-    SM -.->|"Used by all tasks"| D2
+    %% Apply styles
+    class DC,rt_flow,rt_output green
+    class TP,product blue
+    class STAT,stat_accum,stat_output orange
+    class SAMPLES,rt_sample,stat_sample gray
 ```
 
 *FreeRTOS mutexes and the inter‑core queue protect all shared product data and statistics across Core 0 and Core 1.*
