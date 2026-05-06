@@ -132,6 +132,7 @@ flowchart LR
 *Smart Conveyor System – Dual-Stage Smart Conveyor Control System – Architecture overview showing tasks, ISR, inter‑task communication resources, and the serial monitor.*
 
 ### Smart Conveyor System – Data Flow
+
 ```mermaid
 graph TB
     %% Styles
@@ -139,7 +140,6 @@ graph TB
     classDef blue fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
     classDef orange fill:#fff3e0,stroke:#bf360c,stroke-width:2px
     classDef gray fill:#f5f5f5,stroke:#666,stroke-width:2px
-    classDef whiteBox fill:#fff,stroke:#333,stroke-width:1px
 
     %% Data Collection Points
     subgraph DC["Data Collection Points"]
@@ -148,17 +148,10 @@ graph TB
 
     %% TrackedProduct
     subgraph TP["TrackedProduct"]
-      product["<b>Product Data Fields</b><br/>"
-              "ID: barcodeID, tempID<br/>"
-              "Measurements: length, weight<br/>"
-              "Status: NONE → PROCESSED<br/>"
-              "Quality Flags: isLengthOK, isWeightOK<br/>"
-              "Timing: entryTimeConv1, entryTimeConv2<br/>"
-              "Gate Control: gate1DecisionMade, gate2DecisionMade<br/>"
-              "Reporting: forRealTimeReport"]
+      product["<b>Product Data Fields</b><br/>ID: barcodeID, tempID<br/>Measurements: length, weight<br/>Status: NONE → PROCESSED<br/>Quality Flags: isLengthOK, isWeightOK<br/>Timing: entryTimeConv1, entryTimeConv2<br/>Gate Control: gate1DecisionMade, gate2DecisionMade<br/>Reporting: forRealTimeReport"]
     end
 
-    %% Real-Time Reporting
+    %% Real-Time Reporting (1-sec interval)
     subgraph RT["Real-Time Reporting (1-sec interval)"]
       direction LR
       rt_flow["<b>Data Collection Flow</b><br/>1. Status changes<br/>2. addProductToReport()<br/>3. Product added to productsForReport[]<br/>4. formatReportString() builds statusBuffer"]
@@ -166,7 +159,7 @@ graph TB
       rt_flow --> rt_output
     end
 
-    %% Statistical Reporting
+    %% Statistical Reporting (on-demand via 'stat' command)
     subgraph STAT["Statistical Reporting (on-demand via 'stat' command)"]
       direction LR
       stat_accum["<b>Statistical Accumulators</b><br/><b>Length Statistics</b><br/><b>Weight Statistics</b>"]
@@ -187,7 +180,7 @@ graph TB
     rt_output --> rt_sample
     stat_output --> stat_sample
 
-    %% Apply styles
+    %% Apply colour classes
     class DC,rt_flow,rt_output green
     class TP,product blue
     class STAT,stat_accum,stat_output orange
