@@ -136,12 +136,6 @@ flowchart LR
 ```mermaid
 %%{init: {'theme': 'dark'}}%%
 graph TB
-    %% Dark theme class definitions
-    classDef green fill:#1b5e20,stroke:#4caf50,stroke-width:2px,color:#fff
-    classDef blue fill:#0d47a1,stroke:#42a5f5,stroke-width:2px,color:#fff
-    classDef orange fill:#bf360c,stroke:#ff7043,stroke-width:2px,color:#fff
-    classDef gray fill:#424242,stroke:#9e9e9e,stroke-width:2px,color:#fff
-
     %% Data Collection Points
     subgraph DC["Data Collection Points"]
       sensors["<b>Sensor Triggers</b><br/>• Obstruction Sensor (Length)<br/>• Barcode Sensor (Product ID)<br/>• Weight Sensor (Weight)"]
@@ -180,12 +174,6 @@ graph TB
     TP -->|<b>Update Statistical Accumulators<br/>when measurements taken</b>| STAT
     rt_output --> rt_sample
     stat_output --> stat_sample
-
-    %% Apply colour classes
-    class DC,rt_flow,rt_output green
-    class TP,product blue
-    class STAT,stat_accum,stat_output orange
-    class SAMPLES,rt_sample,stat_sample gray
 ```
 
 *FreeRTOS mutexes and the inter‑core queue protect all shared product data and statistics across Core 0 and Core 1.*
